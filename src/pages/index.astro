@@ -1,0 +1,37 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import Tag from "~/components/Tag.astro";
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog', ({ data }) => import.meta.env.DEV || data.draft === false);
+const posts = allPosts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()).slice(0, 6);
+---
+<BaseLayout>
+  <section class="mb-12 mt-4">
+    <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">Write. Rank. Delight.</h1>
+    <p class="mt-3 max-w-prose text-lg text-zinc-600 dark:text-zinc-300">Aurora is a fast, accessible, SEO-obsessed blog template for 2025, built with Astro + MDX + Tailwind. Ship content that loads instantly and looks beautiful in every theme.</p>
+    <div class="mt-6">
+      <a href="/blog" class="btn">Read the Blog →</a>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="mb-4 text-2xl font-semibold">Latest posts</h2>
+    <ul class="space-y-8">
+      {posts.map((post) => (
+        <li>
+          <a href={`/blog/${post.slug}`} class="block">
+            <h3 class="text-xl font-semibold hover:underline">{post.data.title}</h3>
+            <p class="mt-1 text-zinc-600 dark:text-zinc-300">{post.data.description}</p>
+            <p class="mt-2 text-sm text-zinc-500">
+              <time datetime={post.data.pubDate.toISOString()}>{post.data.pubDate.toDateString()}</time>
+              {post.data.tags.length > 0 && (
+                <span> · {post.data.tags.slice(0, 3).map((t) => `#${t}`).join(' ')}</span>
+              )}
+            </p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>

@@ -1,0 +1,49 @@
+---
+import SEO from "~/components/SEO.astro";
+import Header from "~/components/Header.astro";
+import Footer from "~/components/Footer.astro";
+import "~/styles/base.css";
+import { SITE } from "~/site.config";
+import Sidebar from "~/components/Sidebar.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  type?: 'website' | 'article';
+  image?: string;
+  canonical?: string;
+  noIndex?: boolean;
+  datePublished?: string | Date;
+  dateModified?: string | Date;
+  tags?: string[];
+}
+
+const props = Astro.props as Props;
+const hasHeader = Astro.slots.has('header');
+---
+<html lang={SITE.language} class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <SEO {...props} />
+  </head>
+  <body class="min-h-screen">
+    <Header />
+    <main class="container">
+      {hasHeader && (
+        <div class="not-prose mb-8 border-b border-zinc-200/70 pb-6 dark:border-zinc-800">
+          <slot name="header" />
+        </div>
+      )}
+      <div class="grid grid-cols-1 items-start gap-12 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div>
+          <slot />
+        </div>
+        <div class="hidden lg:block">
+          <Sidebar />
+        </div>
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,45 @@
+---
+import { getCollection } from 'astro:content';
+import Tag from '~/components/Tag.astro';
+
+const posts = (await getCollection('blog', ({ data }) => import.meta.env.DEV || data.draft === false))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+const recent = posts.slice(0, 5);
+const tags = Array.from(new Set(posts.flatMap((p) => p.data.tags))).sort((a, b) => a.localeCompare(b));
+---
+<aside class="sticky top-24 space-y-8">
+  <section class="rounded-xl border border-zinc-200/70 p-5 dark:border-zinc-800">
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">About</h2>
+    <p class="text-sm text-zinc-600 dark:text-zinc-300">Thoughts on the modern web, performance, and content that ranks and delights. Built with Astro.</p>
+  </section>
+
+  <section class="rounded-xl border border-zinc-200/70 p-5 dark:border-zinc-800">
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">Recent Posts</h2>
+    <ul class="space-y-3">
+      {recent.map((p) => (
+        <li>
+          <a href={`/blog/${p.slug}`} class="block text-sm font-medium hover:underline">{p.data.title}</a>
+          <p class="text-xs text-zinc-500"><time datetime={p.data.pubDate.toISOString()}>{p.data.pubDate.toDateString()}</time></p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  {tags.length > 0 && (
+    <section class="rounded-xl border border-zinc-200/70 p-5 dark:border-zinc-800">
+      <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">Tags</h2>
+      <div class="flex flex-wrap gap-2">
+        {tags.slice(0, 30).map((t) => <Tag tag={t} />)}
+      </div>
+    </section>
+  )}
+
+  <section class="rounded-xl border border-zinc-200/70 p-5 dark:border-zinc-800">
+    <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">Newsletter</h2>
+    <p class="mb-3 text-sm text-zinc-600 dark:text-zinc-300">Get new posts in your inbox. No spam, unsubscribe anytime.</p>
+    <form action="#" method="post" class="flex gap-2">
+      <input type="email" required placeholder="you@example.com" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none transition placeholder:text-zinc-400 focus:ring-2 focus:ring-brand-400 dark:border-zinc-700 dark:bg-zinc-900" />
+      <button type="submit" class="btn">Subscribe</button>
+    </form>
+  </section>
+</aside>

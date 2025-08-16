@@ -1,0 +1,21 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || data.draft === false);
+const tags = Array.from(new Set(posts.flatMap((p) => p.data.tags))).sort((a, b) => a.localeCompare(b));
+---
+<BaseLayout title="Tags">
+  <h1 class="mb-6 text-3xl font-bold">Tags</h1>
+  {tags.length === 0 ? (
+    <p class="text-zinc-500">No tags yet.</p>
+  ) : (
+    <ul class="flex flex-wrap gap-3">
+      {tags.map((t) => (
+        <li>
+          <a href={`/tags/${encodeURIComponent(t)}`} class="rounded-md bg-zinc-100 px-3 py-1 text-sm font-medium text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">#{t}</a>
+        </li>
+      ))}
+    </ul>
+  )}
+</BaseLayout>

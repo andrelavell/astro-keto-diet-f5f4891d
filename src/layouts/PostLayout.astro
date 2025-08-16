@@ -1,0 +1,138 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import { readingTime } from "~/lib/readingTime";
+import { SITE } from "~/site.config";
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: import('astro:content').CollectionEntry<'blog'>;
+}
+const { post } = Astro.props as Props;
+const { Content } = await post.render();
+const timeToRead = readingTime((post as any).body || post.data.description || '');
+
+// Build related posts list by shared category and tags
+const allPosts = await getCollection('blog', ({ data }) => import.meta.env.DEV || data.draft === false);
+const others = allPosts.filter((p) => p.slug !== post.slug);
+const targetTags = new Set(post.data.tags || []);
+const targetCategory = post.data.category;
+
+const scored = others
+  .map((p) => {
+    let score = 0;
+    if (targetCategory && p.data.category === targetCategory) score += 2;
+    for (const t of p.data.tags || []) if (targetTags.has(t)) score += 1;
+    return { post: p, score };
+  })
+  .filter((x) => x.score > 0);
+
+scored.sort((a, b) => {
+  if (b.score !== a.score) return b.score - a.score;
+  return (b.post.data.pubDate?.getTime?.() || 0) - (a.post.data.pubDate?.getTime?.() || 0);
+});
+
+let relatedPosts: CollectionEntry<'blog'>[] = scored.slice(0, 3).map((x) => x.post);
+if (relatedPosts.length === 0) {
+  relatedPosts = others
+    .slice()
+    .sort((a, b) => (b.data.pubDate?.getTime?.() || 0) - (a.data.pubDate?.getTime?.() || 0))
+    .slice(0, 3);
+}
+---
+<BaseLayout
+  title={`${post.data.title} — ${SITE.title}`}
+  description={post.data.description}
+  type="article"
+  image={post.data.ogImage?.src || post.data.heroImage?.src}
+  canonical={post.data.canonical}
+  datePublished={post.data.pubDate}
+  dateModified={post.data.updatedDate}
+  tags={post.data.tags}
+>
+  <div slot="header">
+    <div class="max-w-3xl">
+      <nav class="mb-3 text-sm text-zinc-500">
+        <a href="/" class="hover:underline">Home</a>
+        {' / '}
+        <a href="/blog" class="hover:underline">Articles</a>
+        {' / '}
+        <span class="truncate align-top">{post.data.title}</span>
+      </nav>
+
+      <div class="mb-4 flex flex-wrap items-center gap-3 text-sm text-zinc-600 dark:text-zinc-300">
+        {(post.data.category || post.data.tags[0]) && (
+          <span class="inline-flex items-center rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-800">
+            {post.data.category || post.data.tags[0]}
+          </span>
+        )}
+        <span>
+          <time datetime={post.data.pubDate.toISOString()}>{post.data.pubDate.toDateString()}</time>
+        </span>
+        <span>· {timeToRead}</span>
+      </div>
+
+      <h1 class="mb-3 text-3xl font-extrabold leading-tight tracking-tight md:text-5xl">{post.data.title}</h1>
+      <p class="mb-6 max-w-3xl text-lg text-zinc-600 dark:text-zinc-300">{post.data.subtitle || post.data.description}</p>
+
+      {post.data.author && (
+        <div class="flex items-center gap-3">
+          {post.data.author.avatar && (
+            <img src={post.data.author.avatar.src} alt={post.data.author.name} class="h-10 w-10 rounded-full object-cover" loading="lazy" />
+          )}
+          <div class="text-sm">
+            <p class="font-medium">By {post.data.author.name}</p>
+            {post.data.author.title && (
+              <p class="text-zinc-500">{post.data.author.title}</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+
+    {post.data.heroImage && (
+      <div class="mt-6 overflow-hidden rounded-xl">
+        <img
+          src={post.data.heroImage.src}
+          alt={post.data.heroAlt || ''}
+          class="h-[clamp(220px,40vh,520px)] w-full object-cover"
+          loading="eager"
+        />
+      </div>
+    )}
+  </div>
+
+  <article class="prose mx-auto">
+    <div class="prose max-w-none">
+      <Content />
+    </div>
+  </article>
+
+  {relatedPosts.length > 0 && (
+    <section class="mt-16">
+      <div class="container">
+        <h2 class="mb-6 text-2xl font-bold tracking-tight">Related articles</h2>
+        <ul class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {relatedPosts.map((r) => (
+            <li class="rounded-lg border border-zinc-200/70 transition hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900">
+              <a href={`/blog/${r.slug}`} class="block">
+                {r.data.heroImage && (
+                  <div class="overflow-hidden rounded-t-lg">
+                    <img
+                      src={r.data.heroImage.src}
+                      alt={r.data.heroAlt || ''}
+                      class="aspect-[16/9] w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                <div class="p-4">
+                  <h3 class="text-base font-semibold tracking-tight hover:underline">{r.data.title}</h3>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+</BaseLayout>

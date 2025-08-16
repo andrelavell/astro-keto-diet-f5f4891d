@@ -1,0 +1,15 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Optional: keep dev consistent locally
+[dev]
+  publish = "dist"
+  port = 8888
+
+# Optional: if you later want to proxy API, uncomment and set your backend URL
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://your-backend.example.com/api/:splat"
+#   status = 200
+#   force = true

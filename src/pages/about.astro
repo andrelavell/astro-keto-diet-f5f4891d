@@ -1,0 +1,35 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import { SITE } from "~/site.config";
+---
+<BaseLayout title={`About — ${SITE.title}`} description={`About ${SITE.title}`}>
+  <article class="prose mx-auto">
+    <header class="not-prose mb-6">
+      <h1 class="text-4xl font-bold tracking-tight">About</h1>
+      <p class="mt-1 text-sm text-zinc-500">Last updated: August 15, 2025</p>
+    </header>
+
+    <p>
+      {SITE.title} is a modern, fast, and accessible blog built with Astro and Tailwind CSS. This space
+      features writing on the web, engineering, and product — with a focus on clarity and utility.
+    </p>
+
+    <h2>About the author</h2>
+    <p>
+      Hi, I'm {SITE.author}. I write about practical development patterns, architecture, and shipping
+      high-quality software. You can find quick updates on Twitter at <a href={`https://twitter.com/${SITE.authorTwitter?.replace('@','') || ''}`} target="_blank" rel="noopener">{SITE.authorTwitter}</a>.
+    </p>
+
+    <h2>About this site</h2>
+    <ul>
+      <li>Framework: Astro</li>
+      <li>Styling: Tailwind CSS + typography</li>
+      <li>Content: MDX via Astro Content Collections</li>
+      <li>Performance: Static-first, image lazy-loading, SEO-friendly metadata</li>
+    </ul>
+
+    <p>
+      Have feedback or ideas? Reach out via social, or open an issue in the site repo if it's public.
+    </p>
+  </article>
+</BaseLayout>

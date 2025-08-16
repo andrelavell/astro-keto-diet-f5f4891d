@@ -1,0 +1,23 @@
+---
+interface Props {
+  currentPage: number;
+  totalPages: number;
+  baseUrl: string;
+}
+const { currentPage, totalPages, baseUrl } = Astro.props as Props;
+
+function hrefFor(page: number) {
+  return page === 1 ? baseUrl : `${baseUrl}/${page}`;
+}
+---
+<nav class="mt-10 flex items-center justify-between" aria-label="Pagination">
+  {currentPage > 1 ? (
+    <a class="btn" href={hrefFor(currentPage - 1)}>← Previous</a>
+  ) : <span />}
+
+  <p class="text-sm text-zinc-500">Page {currentPage} of {totalPages}</p>
+
+  {currentPage < totalPages ? (
+    <a class="btn" href={hrefFor(currentPage + 1)}>Next →</a>
+  ) : <span />}
+</nav>

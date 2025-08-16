@@ -1,0 +1,74 @@
+---
+import BaseLayout from "~/layouts/BaseLayout.astro";
+import Tag from "~/components/Tag.astro";
+import Pagination from "~/components/Pagination.astro";
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || data.draft === false);
+  posts.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+  const pageSize = 10;
+  const totalPages = Math.max(1, Math.ceil(posts.length / pageSize));
+  // This catch-all route handles pages 2..N. Page 1 is served by /blog/index.astro.
+  if (totalPages <= 1) return [];
+  return Array.from({ length: totalPages - 1 }, (_, i) => {
+    const pageNum = i + 2; // start at page 2
+    return {
+      params: { page: String(pageNum) },
+      props: {
+        page: pageNum,
+        totalPages,
+        posts: posts.slice((pageNum - 1) * pageSize, pageNum * pageSize),
+      },
+    };
+  });
+}
+
+interface Props {
+  page: number;
+  totalPages: number;
+  posts: CollectionEntry<'blog'>[];
+}
+const { page, totalPages, posts } = Astro.props as Props;
+---
+<BaseLayout title={`Blog — Page ${page}`}>
+  <div slot="header" class="max-w-3xl">
+    <nav class="mb-3 text-sm text-zinc-500">
+      <a href="/" class="hover:underline">Home</a>
+      {' / '}
+      <a href="/blog" class="hover:underline">Articles</a>
+      {' / '}
+      <span>Page {page}</span>
+    </nav>
+    <h1 class="mb-3 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">Articles</h1>
+    <p class="text-lg text-zinc-600 dark:text-zinc-300">Insights, tutorials, and opinions on building a modern, fast, and SEO-first web with Astro.</p>
+  </div>
+  <ul class="space-y-8">
+    {posts.map((post) => (
+      <li>
+        <a href={`/blog/${post.slug}`} class="block">
+          <div class="flex gap-5">
+            {post.data.heroImage && (
+              <img src={post.data.heroImage.src} alt={post.data.heroAlt || ''} class="hidden h-24 w-32 flex-none rounded-lg object-cover sm:block" loading="lazy" />
+            )}
+            <div class="min-w-0 flex-1">
+              <h2 class="text-2xl font-semibold hover:underline">{post.data.title}</h2>
+              <p class="mt-1 text-zinc-600 dark:text-zinc-300">{post.data.description}</p>
+              <p class="mt-2 text-sm text-zinc-500">
+                <time datetime={post.data.pubDate.toISOString()}>{post.data.pubDate.toDateString()}</time>
+              </p>
+              {post.data.tags.length > 0 && (
+                <div class="mt-2 flex flex-wrap gap-2">
+                  {post.data.tags.map((t) => <Tag tag={t} />)}
+                </div>
+              )}
+            </div>
+          </div>
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  <Pagination currentPage={page} totalPages={totalPages} baseUrl="/blog" />
+</BaseLayout>

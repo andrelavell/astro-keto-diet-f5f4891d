@@ -1,0 +1,22 @@
+<button id="theme-toggle" class="rounded-lg border border-zinc-200 p-2 text-sm transition hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800" aria-label="Toggle theme">
+  <span class="inline dark:hidden">🌙</span>
+  <span class="hidden dark:inline">☀️</span>
+</button>
+
+<script is:inline>
+  const storageKey = 'theme';
+  const classList = document.documentElement.classList;
+
+  function applyTheme() {
+    const saved = localStorage.getItem(storageKey);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = saved ? saved === 'dark' : prefersDark;
+    classList.toggle('dark', dark);
+  }
+
+  applyTheme();
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem(storageKey, isDark ? 'dark' : 'light');
+  });
+</script>
